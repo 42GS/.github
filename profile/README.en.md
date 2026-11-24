@@ -37,11 +37,19 @@ Legacy baselines: [`42GS/minishell-old`](https://github.com/42GS/minishell-old) 
 
 `C++98` · `POSIX Sockets` · `poll()` · `CGI/1.1` · `2-person team (Oct 16–29, 2026)`
 
-Zero-dependency RFC 9112 HTTP/1.1 &amp; CGI/1.1 server — single-process `poll()` non-blocking event loop multiplexing listeners, client sockets, and CGI pipes.
+Zero-dependency RFC 9112 HTTP/1.1 &amp; CGI/1.1 server — single-process `poll()` non-blocking event loop multiplexing listeners, client sockets, and CGI pipes
 
-* **Protocol &amp; Routing**: `keep-alive`, HTTP pipelining, incremental `Content-Length`/chunked parsing, `multipart/form-data` uploads (`201`/`409`/`413`), `DELETE` (`204`), CGI/1.1 (`fork`/`execve`, `10s` timeout `504`, `ChildReaper`), `12` NGINX-style directives, longest-prefix matching, segment-boundary `alias` checks, `400` rejection for `..` traversal
-* **Stability &amp; System Constraints**: `64 KiB` chunked streaming for files over `1 MiB`, `DRAIN` state before socket close (TCP `RST` avoidance), `stat()`-based `Clock` workaround for forbidden time functions, listener `POLLIN` pause/resume on FD exhaustion, `Proxy` header stripping (`httpoxy` / `CVE-2016-5385`), `16 MiB` CGI output cap with `std::string::swap` zero-copy transfer
-* **Verification &amp; Wiki**: `105/105` C++98 unit tests (`make test`), `11` Python TCP integration suites (`124` cases), Valgrind · Electric Fence · `siege`, Linux (`x86_64`) / macOS (`arm64`) release CI / `webserv-wiki` with `67` primary sources/OS benchmarks, `111` pages, `19` ADRs, [public study wiki](https://github.com/42GS/webserv/wiki) (`21` chapters, KO)
+* **Protocol &amp; Routing**
+  * HTTP/1.1 `keep-alive`, pipelining, incremental `Content-Length` &amp; chunked parsing
+  * `multipart/form-data` uploads (`201`/`409`/`413`), `DELETE` (`204`), CGI/1.1 (`fork`/`execve`, `10s` timeout `504`, `ChildReaper`)
+  * `12` NGINX-style directives, longest-prefix matching, segment-boundary `alias` checks, `400` rejection for `..` traversal
+* **Stability &amp; System Constraints**
+  * `64 KiB` chunked streaming for files over `1 MiB`, `DRAIN` state before socket close (TCP `RST` avoidance)
+  * `stat()`-based `Clock` workaround for forbidden time functions, listener `POLLIN` pause/resume on FD exhaustion
+  * `Proxy` header stripping (`httpoxy` / `CVE-2016-5385`), `16 MiB` CGI output cap with `std::string::swap` zero-copy transfer
+* **Verification &amp; Wiki**
+  * `105/105` C++98 unit tests (`make test`), `11` Python TCP suites (`124` cases), Valgrind · Electric Fence · `siege`, Linux (`x86_64`)/macOS (`arm64`) release CI
+  * `webserv-wiki`: `67` primary sources/OS benchmarks, `111` pages, `19` ADRs, [public study wiki](https://github.com/42GS/webserv/wiki) (`21` chapters, KO)
 
 ```mermaid
 flowchart LR
@@ -64,11 +72,20 @@ flowchart LR
 
 `C99` · `POSIX.1-2017` · `GNU Readline` · `Valgrind` · `GHCR CI` · `Solo`
 
-POSIX Unix shell without standard-shell assistance — spec-first architecture documentation, C implementation, and 5-layer automated QA.
+POSIX Unix shell without standard-shell assistance — spec-first architecture documentation, C implementation, and 5-layer automated QA
 
-* **Parser · IPC · Signals**: DFA lexer → recursive descent AST → Here-doc pre-collector → expander/globbing → `(N-1)` pipe IPC and 7 builtins, single `g_signal_num` async-signal-safe 4-state machine (`ctx->interrupted` short-circuit separation), `O_CREAT | O_EXCL` (`0600`) + immediate `unlink()` anonymous Here-docs (64KB pipe deadlock avoidance &amp; `close_ast_heredocs()`), `O(N)` `t_strbuf`, quote-masked (`t_exp_buf.mask`) `*` globbing
-* **Redesign vs. Legacy**: `-50.6%` core LOC vs. `minishell-old` (`7,883 -> 3,896` LOC; total `9,283 -> 4,476` LOC), `0` Norminette errors, `58` Doxygen-documented files, `0` forbidden external symbols (`33` allowed), 42evalhub E2E pass rate `20/37 (54.1%) -> 37/37 (100%)`
-* **Verification &amp; Wiki**: `7` C unit suites, `47` Bash-differential smoke checks, `37` 42evalhub cases, `8` PTY signal tests, `13` Valgrind QA scenarios (`0` heap/FD leaks), GHCR parallel CI `77~80s -> 29~36s` (`-62.3%`) / `minishell-wiki` with `33` docs (4 architecture specs, CS deep dives, eval matrix, retrospective) and 7-stage linter CI (`0 Errors`)
+* **Parser · IPC · Signals**
+  * DFA lexer → recursive descent AST → Here-doc pre-collector → expander/globbing → `(N-1)` pipe IPC and 7 builtins
+  * Single `g_signal_num` async-signal-safe 4-state machine (`ctx->interrupted` separating `SIGINT` abort from `(exit 130)`)
+  * `O_CREAT | O_EXCL` (`0600`) + immediate `unlink()` anonymous Here-docs (avoiding 64KB pipe deadlocks &amp; `close_ast_heredocs()`)
+  * `O(N)` `t_strbuf` (no `realloc`), quote-masked (`t_exp_buf.mask`) `*` globbing
+* **Redesign vs. Legacy (`minishell-old`)**
+  * `-50.6%` core LOC (`7,883 -> 3,896` LOC; total `9,283 -> 4,476` LOC), `0` Norminette errors, `58` Doxygen-documented files
+  * `0` forbidden external symbols (`33` allowed), 42evalhub E2E pass rate `20/37 (54.1%) -> 37/37 (100%)`
+* **Verification &amp; Wiki**
+  * `7` C unit suites, `47` Bash-differential smoke checks, `37` 42evalhub cases, `8` PTY signal tests, `13` Valgrind QA scenarios (`0` heap/FD leaks)
+  * GHCR container parallelization cutting GitHub Actions CI `77~80s -> 29~36s` (`-62.3%`)
+  * `minishell-wiki`: `33` docs (4 architecture specs, CS deep dives, eval matrix, retrospective) and 7-stage linter CI (`0 Errors`)
 
 ```mermaid
 flowchart LR
